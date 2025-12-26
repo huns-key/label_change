@@ -1,1 +1,43 @@
+name: Build label_change.exe with Nuitka
 
+on:
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install nuitka
+
+      - name: Build with Nuitka
+        shell: cmd
+        run: |
+          python -m nuitka ^
+            --onefile ^
+            --windows-console-mode=disable ^
+            --enable-plugin=tk-inter ^
+            --assume-yes-for-downloads ^
+            --output-dir=dist ^
+            label_change.py
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: label_change-Windows
+          path: dist/label_change.exe
+
+      - name: Show EXE size
+        shell: cmd
+        run: dir dist\label_change.exe
